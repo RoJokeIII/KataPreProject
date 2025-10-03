@@ -4,36 +4,39 @@ import java.sql.*;
 
 public class Util {
     // реализуйте настройку соеденения с БД
-    private String hostDB = "127.0.0.1";
-    private String portDB = "3306";
-    private String nameDB = "user";
-    private String userDB = "root";
-    private String passwordDB = "Lemoncheg2";
+    private static String hostDB = "127.0.0.1";
+    private static String portDB = "3306";
+    private static String nameDB = "user";
+    private static String userDB = "root";
+    private static String passwordDB = "Lemoncheg2";
 
-    Connection connection;
-
-    public Connection getConnection() {
-        createConnection();
-        return connection;
-    }
-
-    public void createConnection() {
+    public static Connection getConnection() {
         String urlDB = "jdbc:mysql://" + hostDB + ":" + portDB + "/" + nameDB;
         try {
-            connection = DriverManager.getConnection(urlDB, userDB, passwordDB);
+            return DriverManager.getConnection(urlDB, userDB, passwordDB);
         } catch (SQLException e) {
             System.out.println("Не получилось подключиться к базе данных.");
             throw new RuntimeException(e);
         }
     }
-
-    public void closeConnection(){
+    public static boolean isClose(Connection connection){
         try {
-            connection.close();
+            if(connection == null){
+                return true;
+            }
+            return connection.isClosed();
         } catch (SQLException e) {
-            System.out.println("Не удалось закрыть подключение");
+            System.out.println("Не удалось проверить подключение");
             throw new RuntimeException(e);
         }
     }
-
+    public static void close(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

@@ -11,12 +11,26 @@ public class UserDaoJDBCImpl implements UserDao {
     public UserDaoJDBCImpl() {
 
     }
-
+    private static Connection connection;
     private final String nameTable = "usertable";
 
+
+    public void createConnection(){
+        if(Util.isClose(connection)){
+            connection = Util.getConnection();
+        }
+    }
+
+    public void closeConnection(){
+        if (!Util.isClose(connection)){
+            Util.close(connection);
+            connection = null;
+        }
+    }
+
     public void createUsersTable() {
-        Util con = new Util();
-        try (Connection connection = con.getConnection()) {
+        createConnection();
+        try {
             ResultSet tables = connection.getMetaData().getTables(null, null, nameTable, null);
             if (tables.next()) {
                 return;
@@ -29,31 +43,35 @@ public class UserDaoJDBCImpl implements UserDao {
                         "age TINYINT" +
                         ")";
                 statement.executeUpdate(createTableSQL);
+                System.out.println(4);
             }
         } catch (SQLException e) {
             System.out.println("Не удалось создать таблицу");
             throw new RuntimeException(e);
         }
+        closeConnection();
     }
 
     public void dropUsersTable() {
-        Util con = new Util();
-        try (Connection connection = con.getConnection()) {
+        createConnection();
+        try {
             ResultSet tables = connection.getMetaData().getTables(null, null, nameTable, null);
             if (tables.next()) {
                 Statement statement = connection.createStatement();
                 String deleteTableSQL = "DROP TABLE " + nameTable;
                 statement.executeUpdate(deleteTableSQL);
+                connection.close();
             }
         } catch (SQLException e) {
             System.out.println("Не удалось удалить таблицу");
             throw new RuntimeException(e);
         }
+        closeConnection();
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        Util con = new Util();
-        try (Connection connection = con.getConnection()) {
+        createConnection();
+        try {
             ResultSet tables = connection.getMetaData().getTables(null, null, nameTable, null);
             if (tables.next()) {
                 String saveUserTableSQL = "INSERT INTO " + nameTable + " (name, lastName, age) VALUES (?,?,?)";
@@ -67,11 +85,12 @@ public class UserDaoJDBCImpl implements UserDao {
             System.out.println("Не удалось сохранить пользователя");
             throw new RuntimeException(e);
         }
+        closeConnection();
     }
 
     public void removeUserById(long id) {
-        Util con = new Util();
-        try (Connection connection = con.getConnection()) {
+        createConnection();
+        try {
             ResultSet tables = connection.getMetaData().getTables(null, null, nameTable, null);
             if (tables.next()) {
                 String removeUserTableSQL = "DELETE FROM " + nameTable + " WHERE id=?";
@@ -83,12 +102,13 @@ public class UserDaoJDBCImpl implements UserDao {
             System.out.println("Не удалось удалить пользователя");
             throw new RuntimeException(e);
         }
+        closeConnection();
     }
 
     public List<User> getAllUsers() {
-        Util con = new Util();
+        createConnection();
         List<User> users = new ArrayList<>();
-        try (Connection connection = con.getConnection()) {
+        try {
             ResultSet tables = connection.getMetaData().getTables(null, null, nameTable, null);
             if (tables.next()) {
                 String getUsersSQL = "SELECT id, name, lastName, age FROM " + nameTable;
@@ -107,12 +127,13 @@ public class UserDaoJDBCImpl implements UserDao {
             System.out.println("Не удалось удалить пользователей");
             throw new RuntimeException(e);
         }
+        closeConnection();
         return users;
     }
 
     public void cleanUsersTable() {
-        Util con = new Util();
-        try (Connection connection = con.getConnection()) {
+        createConnection();
+        try {
             ResultSet tables = connection.getMetaData().getTables(null, null, nameTable, null);
             if (tables.next()) {
                 String cleanTableSQL = "DELETE FROM " + nameTable;
@@ -123,5 +144,6 @@ public class UserDaoJDBCImpl implements UserDao {
             System.out.println("Не удалось удалить пользователей");
             throw new RuntimeException(e);
         }
+        closeConnection();
     }
 }
